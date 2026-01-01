@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengelola Uang</title>
+
+<style>
+:root{
+  --grad:linear-gradient(135deg,#6d3cff,#3c7cff);
+  --bg:#f4f6fb;
+  --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system;
+  background:var(--bg);
+  font-size:12.5px;
+  color:#333;
+}
+header{
+  text-align:center;
+  padding:18px;
+  font-size:20px;
+  font-weight:700;
+}
+.mode{
+  display:flex;
+  gap:10px;
+  margin:0 15px 15px;
+}
+.mode button{
+  flex:1;
+  padding:11px;
+  border:none;
+  border-radius:16px;
+  background:#e6e8f2;
+  font-weight:600;
+}
+.mode button.active{
+  background:var(--grad);
+  color:#fff;
+}
+.card{
+  background:var(--card);
+  margin:0 15px 15px;
+  padding:16px;
+  border-radius:22px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
+.card h3{
+  margin:0 0 10px;
+  font-size:15px;
+}
+input{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:14px;
+  background:#f1f2f8;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px;
+  font-weight:600;
+}
+.graph{margin-top:14px}
+.bar-wrap{
+  background:#e9ebf3;
+  border-radius:14px;
+  overflow:hidden;
+  height:22px;
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:var(--grad);
+  transition:.4s;
+}
+.graph-info{
+  display:flex;
+  justify-content:space-between;
+  margin-top:6px;
+  font-weight:600;
+}
+.list{padding:0 15px}
+.item{
+  background:#fff;
+  border-radius:20px;
+  padding:12px;
+  margin-bottom:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+.item input{margin-bottom:8px}
+.control{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.btn{
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:50%;
+  background:var(--grad);
+  color:#fff;
+  font-size:18px;
+}
+.qty{
+  min-width:22px;
+  text-align:center;
+  font-weight:700;
+}
+.sub{
+  text-align:right;
+  font-weight:700;
+  margin-top:6px;
+}
+.add{
+  padding:0 15px 20px;
+}
+.add button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:20px;
+  background:var(--grad);
+  color:white;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.reset{background:#ff5c5c!important}
+.tutorial-btn{background:#8a8aff!important}
+.summary{
+  margin-top:10px;
+  font-size:12px;
+}
+.summary div{
+  display:flex;
+  justify-content:space-between;
+  margin-top:4px;
+}
+#tutorialOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.tutorial-card{
+  background:#fff;
+  border-radius:24px;
+  padding:20px;
+  width:90%;
+  max-width:380px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+footer{
+  text-align:center;
+  padding:20px;
+  font-size:12px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
+<header>Pengelola Uang</header>
+
+<div class="mode">
+  <button id="dompetBtn" class="active" onclick="setMode('dompet')">Manajemen Dompet</button>
+  <button id="usahaBtn" onclick="setMode('usaha')">Manajemen Usaha</button>
+</div>
+
+<div class="card">
+  <h3 id="title">Ringkasan Dompet</h3>
+  <input id="base" type="text" inputmode="numeric" placeholder="Contoh: 1.000.000">
+
+  <div class="row">
+    <span id="totalLabel">Total Keluar</span>
+    <span>Rp <span id="total">0</span></span>
+  </div>
+  <div class="row">
+    <span id="resultLabel">Sisa</span>
+    <span>Rp <span id="result">0</span></span>
+  </div>
+
+  <div class="graph">
+    <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+    <div class="graph-info">
+      <span id="emoji">🙂</span>
+      <span id="status">Normal</span>
+    </div>
+  </div>
+
+  <div class="summary" id="kategori"></div>
+</div>
+
+<div class="list" id="list"></div>
+
+<div class="add">
+  <button onclick="addItem()">➕ Tambah Nominal</button>
+  <button class="reset" onclick="resetMode()">♻ Reset Mode Ini</button>
+  <button class="tutorial-btn" onclick="showTutorial()">📘 Lihat Tutorial</button>
+</div>
+
+<footer>made by <b>Nor Zajuli Ghani</b></footer>
+
+<div id="tutorialOverlay">
+  <div class="tutorial-card">
+    <h2>👋 Selamat Datang di Pengelola Uang</h2>
+    <p>
+      Aplikasi ini membantu kamu mengatur:
+      <br>• Uang pribadi (Dompet)
+      <br>• Keuangan usaha (Usaha)
+    </p>
+    <p>
+      1️⃣ Pilih mode<br>
+      2️⃣ Isi saldo / modal<br>
+      3️⃣ Tambahkan keperluan<br>
+      4️⃣ Atur jumlah & lihat grafik
+    </p>
+    <p>Emoji menunjukkan kondisi keuangan kamu 😁👍🏻</p>
+    <button onclick="closeTutorial()">🚀 Mulai</button>
+  </div>
+</div>
+
+<script>
+const KEY="pengelola-uang-final";
+const TUTORIAL_KEY="tutorial_seen";
+let data={dompet:{base:0,items:[]},usaha:{base:0,items:[]}};
+let mode="dompet";
+
+const base=document.getElementById("base");
+const list=document.getElementById("list");
+const totalEl=document.getElementById("total");
+const resultEl=document.getElementById("result");
+const bar=document.getElementById("bar");
+const emojiEl=document.getElementById("emoji");
+const statusEl=document.getElementById("status");
+const kategori=document.getElementById("kategori");
+
+const fmt=n=>n.toLocaleString("id-ID");
+const toNum=v=>parseInt(v.replace(/\D/g,''))||0;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function load(){const s=localStorage.getItem(KEY);if(s)data=JSON.parse(s)}
+
+function setMode(m){
+  mode=m;
+  dompetBtn.classList.toggle("active",m==="dompet");
+  usahaBtn.classList.toggle("active",m==="usaha");
+  render();
+}
+
+base.oninput=()=>{
+  const n=toNum(base.value);
+  data[mode].base=n;
+  base.value=n?fmt(n):"";
+  save();hitung();
+};
+
+function addItem(){
+  data[mode].items.push({nama:"",nom:0,qty:0});
+  save();render();
+}
+
+function resetMode(){
+  if(confirm("Reset data "+mode+"?")){
+    data[mode]={base:0,items:[]};
+    save();render();
+  }
+}
+
+function render(){
+  list.innerHTML="";
+  base.value=data[mode].base?fmt(data[mode].base):"";
+  data[mode].items.forEach(it=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`
+      <input placeholder="Nama keperluan" value="${it.nama}">
+      <input type="text" inputmode="numeric" placeholder="Nominal" value="${it.nom?fmt(it.nom):''}">
+      <div class="control">
+        <button class="btn">−</button>
+        <div class="qty">${it.qty}</div>
+        <button class="btn">+</button>
+      </div>
+      <div class="sub">Rp ${fmt(it.nom*it.qty)}</div>`;
+    const i=d.querySelectorAll("input");
+    i[0].oninput=e=>{it.nama=e.target.value;save()};
+    i[1].oninput=e=>{
+      const n=toNum(e.target.value);
+      it.nom=n;
+      e.target.value=n?fmt(n):"";
+      save();hitung();
+    };
+    d.querySelectorAll(".btn")[0].onclick=()=>{if(it.qty>0)it.qty--;save();render()};
+    d.querySelectorAll(".btn")[1].onclick=()=>{it.qty++;save();render()};
+    list.appendChild(d);
+  });
+  hitung();
+}
+
+function hitung(){
+  let total=0,map={};
+  data[mode].items.forEach(i=>{
+    const s=i.nom*i.qty;
+    total+=s;
+    if(i.nama) map[i.nama]=(map[i.nama]||0)+s;
+  });
+  totalEl.textContent=fmt(total);
+  const baseVal=data[mode].base;
+  const result=mode==="dompet"?baseVal-total:total-baseVal;
+  resultEl.textContent=fmt(result);
+
+  let percent=baseVal?(total/baseVal)*100:0;
+  let emoji="🙂",status="Normal";
+  if(mode==="dompet"){
+    if(percent<=50){emoji="😏👍🏻";status="Hemat"}
+    else if(percent<=75){emoji="😃";status="Normal"}
+    else if(percent<=95){emoji="😨";status="Boros Amat"}
+    else{emoji="☠️";status="Kebobolan"}
+  }else{
+    const sel=total-baseVal;
+    if(sel>baseVal*0.2){emoji="🤑🔥";status="Untung Besar"}
+    else if(sel>0){emoji="🙂";status="Lumayan"}
+    else if(sel===0){emoji="😐";status="Balik Modal"}
+    else{emoji="😭";status="Rugi"}
+  }
+  bar.style.width=Math.min(percent,100)+"%";
+  emojiEl.textContent=emoji;
+  statusEl.textContent=status;
+
+  kategori.innerHTML="";
+  for(let k in map){
+    kategori.innerHTML+=`<div><span>${k}</span><span>Rp ${fmt(map[k])}</span></div>`;
+  }
+}
+
+function showTutorial(){
+  document.getElementById("tutorialOverlay").style.display="flex";
+}
+function closeTutorial(){
+  localStorage.setItem(TUTORIAL_KEY,"yes");
+  document.getElementById("tutorialOverlay").style.display="none";
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  load();
+  setMode("dompet");
+  if(!localStorage.getItem(TUTORIAL_KEY)) showTutorial();
+});
+</script>
+
+</body>
+</html>
